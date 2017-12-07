@@ -14,7 +14,7 @@ class MyWin(QtWidgets.QMainWindow):
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
-        self.ui = Ui_MainWindow()
+        self.ui = UiMainWindow()
         self.ui.setupUi(self)
 
         # Здесь прописываем событие нажатия на кнопку

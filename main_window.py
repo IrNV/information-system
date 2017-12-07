@@ -1,19 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'C:\Users\1\Desktop\folder\untitled.ui'
-#
-# Created by: PyQt5 UI code generator 5.9.1
-#
-# WARNING! All changes made in this file will be lost!
-
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(634, 600)
+        MainWindow.resize(634, 60)
         MainWindow.setMinimumSize(QtCore.QSize(0, 600))
-        MainWindow.setMaximumSize(QtCore.QSize(16777215, 600))
+        MainWindow.setMaximumSize(QtCore.QSize(16777215, 60))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.widget = QtWidgets.QWidget(self.centralwidget)
@@ -53,4 +46,3 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "PushButton"))
         self.pushButton_3.setText(_translate("MainWindow", "PushButton"))
         self.pushButton_4.setText(_translate("MainWindow", "PushButton"))
-

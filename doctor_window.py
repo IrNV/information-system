@@ -22,16 +22,31 @@ class UiDoctor(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.create_table_widget()
+        main_window.setCentralWidget(self.centralwidget)#
+        self.set_menu_bar(main_window)
+        main_window.setMenuBar(self.menubar)
+
+        UiDoctor.re_translate_ui(main_window)
+        QtCore.QMetaObject.connectSlotsByName(main_window)
+
+    def create_table_widget(self):
+        """
+        This method creates table widget and sets options
+        """
         self.tableWidget = QtWidgets.QTableWidget(self.horizontalLayoutWidget)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(5)
-        self.tableWidget.setRowCount(2)
+        self.tableWidget.setRowCount(0)
         self.horizontalLayout.addWidget(self.tableWidget)
         self.horizontalLayoutWidget.raise_()
         self.tableWidget.raise_()
         self.tableWidget.raise_()
-        main_window.setCentralWidget(self.centralwidget)#
-        # Menu bar
+
+    def set_menu_bar(self, main_window):
+        """
+        This method creates menu bar, adds buttons and sets options
+        """
         self.menubar = QtWidgets.QMenuBar(main_window)
         self.menubar.addAction("Add new doctor")
         self.menubar.addAction("Delete doctor")
@@ -39,33 +54,37 @@ class UiDoctor(object):
         self.menubar.addAction("Save changes")
         self.menubar.setGeometry(QtCore.QRect(0, 0, 823, 21))
         self.menubar.setObjectName("menubar")
-        main_window.setMenuBar(self.menubar)
 
-        self.retranslateUi(main_window)
-        QtCore.QMetaObject.connectSlotsByName(main_window)
-
-    def retranslateUi(self, MainWindow):
+    @staticmethod
+    def re_translate_ui(main_window):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        main_window.setWindowTitle(_translate("MainWindow", "MainWindow"))
 
 
 class DoctorWindow(QtWidgets.QMainWindow):
     __selected_doctor = None
 
     def __init__(self, parent=None):
+        """
+        Initialize doctor's window
+        """
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = UiDoctor()
         self.ui.setup_ui(self)
-        self.set_table_with_doctors_data()
-
-        self.ui.tableWidget.cellClicked.connect(self.cell_clicked)
-
         self.ui.tableWidget.setHorizontalHeaderLabels(["Id", "Name", "Room number", "Phone number", "Email"])
+
+        self.set_table_with_doctors_data()
+        self.set_signals_and_slots()
+
+    def set_signals_and_slots(self):
+        """
+        Set signals and slots to buttons and headers
+        """
         self.ui.menubar.actions()[0].triggered.connect(self.add_new_doctor)
         self.ui.menubar.actions()[1].triggered.connect(self.delete_doctor)
         self.ui.menubar.actions()[2].triggered.connect(self.revert)
         self.ui.menubar.actions()[3].triggered.connect(self.save_changes)
-
+        self.ui.tableWidget.cellClicked.connect(self.cell_clicked)
         header = self.ui.tableWidget.verticalHeader()
         header.sectionClicked.connect(self.header_clicked)
 
@@ -82,7 +101,8 @@ class DoctorWindow(QtWidgets.QMainWindow):
         """
         self.__selected_doctor = self.ui.tableWidget.currentRow()
 
-    def reed_information_about_doctor(self):
+    @staticmethod
+    def reed_information_about_doctor():
         """
         Reed data from a database about doctors.
         :return: cortege rows with data.
@@ -96,7 +116,7 @@ class DoctorWindow(QtWidgets.QMainWindow):
         return data
 
     def set_table_with_doctors_data(self):
-        row = self.reed_information_about_doctor()
+        row = DoctorWindow.reed_information_about_doctor()
 
         self.ui.tableWidget.setRowCount(len(row))
 
@@ -112,7 +132,6 @@ class DoctorWindow(QtWidgets.QMainWindow):
         list_of_id = []
         for i in range(self.ui.tableWidget.rowCount()):
             list_of_id.append(int(self.ui.tableWidget.item(i, 0).text()))
-            print(list_of_id)
         return max(list_of_id)
 
     def add_new_doctor(self):
@@ -137,6 +156,10 @@ class DoctorWindow(QtWidgets.QMainWindow):
         self.set_table_with_doctors_data()
 
     def select_data_from_table(self):
+        """
+        Select data from doctor's table widget
+        :return: return list where each element is list which includes data from row
+        """
         data = []
         for i in range(self.ui.tableWidget.rowCount()):
             data.append([])
@@ -149,17 +172,26 @@ class DoctorWindow(QtWidgets.QMainWindow):
 
         return data
 
-    def select_id(self):
+    @staticmethod
+    def select_id():
+        """
+        Select doctor's id from db
+        :return: cortege of ids
+        """
         conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
         cursor = conn.cursor()
 
-        cursor.execute("""SELECT id FROM doctors""")
+        cursor.execute("""SELECT ID FROM doctors ORDER BY ID""")
         data = cursor.fetchall()
         cursor.close()
 
         return data
 
-    def update_data(self, row, data):
+    @staticmethod
+    def update_data(row, data):
+        """
+        Update data in db b id
+        """
         conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
         cursor = conn.cursor()
 
@@ -172,6 +204,9 @@ class DoctorWindow(QtWidgets.QMainWindow):
 
     @staticmethod
     def add_new_data(row, data):
+        """
+        Add new data to db from doctor's table widget
+        """
         conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
         cursor = conn.cursor()
 
@@ -183,7 +218,11 @@ class DoctorWindow(QtWidgets.QMainWindow):
         conn.commit()
         cursor.close()
 
-    def delete_data(self, id_row):
+    @staticmethod
+    def delete_data(id_row):
+        """
+        Delete row in db by id
+        """
         conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
         cursor = conn.cursor()
         cursor.execute("""DELETE FROM doctors
@@ -193,7 +232,10 @@ class DoctorWindow(QtWidgets.QMainWindow):
         cursor.close()
 
     def save_changes(self):
-        selected_id = self.select_id()
+        """
+        Save all changes was done
+        """
+        selected_id = DoctorWindow.select_id()
         list_of_id_from_db = []
         list_of_id_from_table = []
 
@@ -206,10 +248,10 @@ class DoctorWindow(QtWidgets.QMainWindow):
 
         for i in range(len(list_of_id_from_table)):
             if data_from_table[i][0] in list_of_id_from_db:
-                self.update_data(i, data_from_table)
+                DoctorWindow.update_data(i, data_from_table)
             else:
-                self.add_new_data(i, data_from_table)
+                DoctorWindow.add_new_data(i, data_from_table)
 
         for i in range(len(list_of_id_from_db)):
             if list_of_id_from_db[i] not in list_of_id_from_table:
-                self.delete_data(list_of_id_from_db[i])
+                DoctorWindow.delete_data(list_of_id_from_db[i])

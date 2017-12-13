@@ -30,6 +30,9 @@ class UiClient(object):
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def create_table_widget(self):
+        """
+        Create table widget
+        """
         self.tableWidget = QtWidgets.QTableWidget(self.horizontalLayoutWidget)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(7)
@@ -62,10 +65,17 @@ class ArchiveWindow(QtWidgets.QMainWindow):
 
     @staticmethod
     def set_flags(list_of_flags):
+        """
+        Set all flags to 0. That means that data will sort by ascending
+        :param list_of_flags: show column which we use in sort
+        """
         for i in range(len(list_of_flags)):
             list_of_flags[i] = 0
 
     def horizontal_header_clicked(self):
+        """
+        Sort data from table by column
+        """
         current_column = self.ui.tableWidget.currentColumn()
 
         if self.__list_of_column[current_column] == 0:
@@ -94,7 +104,12 @@ class ArchiveWindow(QtWidgets.QMainWindow):
         self.show_clients_data(data)
 
     @staticmethod
-    def select_data_about_client(parameter="ID"):
+    def select_data_about_client(parameter_order="ID"):
+        """
+        Select data about client from db
+        :param parameter_order:  data will be sorted by this parameter
+        :return:
+        """
         conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
         cursor = conn.cursor()
 
@@ -102,12 +117,16 @@ class ArchiveWindow(QtWidgets.QMainWindow):
         FROM clients c INNER JOIN doctors d
         ON c.`Doctor's name` = d.`Doctor's name`
         WHERE ((Date < CURRENT_DATE()) or (Date = current_date()) and (Time < current_time()))
-        ORDER BY %s""" % parameter)
+        ORDER BY %s""" % parameter_order)
         data = cursor.fetchall()
         cursor.close()
         return data
 
     def show_clients_data(self, data):
+        """
+        Set data into table widget
+        :param data: cortege rows with data.
+        """
         self.ui.tableWidget.setRowCount(len(data))
         for i in range(len(data)):
             for j in range(len(data[i])):

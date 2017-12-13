@@ -12,7 +12,6 @@ from PyQt5.QtCore import QSize, Qt
 
 class MyWin(QtWidgets.QMainWindow):
     __clients = None
-    __archive = None
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
@@ -21,15 +20,10 @@ class MyWin(QtWidgets.QMainWindow):
 
         # Здесь прописываем событие нажатия на кнопку
         self.ui.pushButton.clicked.connect(self.function)
-        self.ui.pushButton_3.clicked.connect(self.f)
 
     def function(self):
         self.__clients = ClientWindow()
         self.__clients.show()
-
-    def f(self):
-        self.__archive = ArchiveWindow()
-        self.__archive.show()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

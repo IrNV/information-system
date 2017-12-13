@@ -2,7 +2,6 @@ import sys
 # Импортируем наш интерфейс из файла
 from main_window import *
 from client_window import *
-from archive_window import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

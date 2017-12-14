@@ -55,14 +55,10 @@ class UiMainWindow(object):
         self.pushButton_3 = QtWidgets.QPushButton(self.widget)
         self.pushButton_3.setObjectName("pushButton_3")
         self.horizontalLayout.addWidget(self.pushButton_3)
-        self.pushButton_4 = QtWidgets.QPushButton(self.widget)
-        self.pushButton_4.setObjectName("pushButton_4")
-        self.horizontalLayout.addWidget(self.pushButton_4)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.pushButton.setText(_translate("MainWindow", "Тест"))
-        self.pushButton_2.setText(_translate("MainWindow", "PushButton"))
-        self.pushButton_3.setText(_translate("MainWindow", "PushButton"))
-        self.pushButton_4.setText(_translate("MainWindow", "PushButton"))
+        self.pushButton.setText(_translate("MainWindow", "Clients"))
+        self.pushButton_2.setText(_translate("MainWindow", "Doctors"))
+        self.pushButton_3.setText(_translate("MainWindow", "Archive"))

@@ -2,7 +2,7 @@ import MySQLdb
 from PyQt5 import QtCore, QtWidgets
 
 
-class UiClient(object):
+class UiArchive(object):
     """
         This class describes client's window and shows information about clients.
     """
@@ -15,6 +15,8 @@ class UiClient(object):
         """ This function contains all client's form geometry settings """
         main_window.setObjectName("MainWindow")
         main_window.resize(823, 600)
+        main_window.setMinimumSize(QtCore.QSize(750, 500))
+        main_window.setMaximumSize(QtCore.QSize(750, 500))
         self.centralWidget = QtWidgets.QWidget(main_window)
         self.centralWidget.setObjectName("centralWidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralWidget)
@@ -26,7 +28,7 @@ class UiClient(object):
         self.create_table_widget()
         main_window.setCentralWidget(self.centralWidget)
 
-        ArchiveWindow.re_translate_ui(main_window)
+        UiArchive.re_translate_ui(main_window)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def create_table_widget(self):
@@ -53,7 +55,7 @@ class ArchiveWindow(QtWidgets.QMainWindow):
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
-        self.ui = UiClient()
+        self.ui = UiArchive()
         self.ui.setup_ui(self)
         row = ArchiveWindow.select_data_about_client()
         self.show_clients_data(row)

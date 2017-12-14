@@ -14,6 +14,8 @@ class UiClient(object):
         """ This function contains all client's form geometry settings """
         main_window.setObjectName("MainWindow")
         main_window.resize(823, 600)
+        main_window.setMinimumSize(QtCore.QSize(750, 500))
+        main_window.setMaximumSize(QtCore.QSize(750, 500))
         self.centralwidget = QtWidgets.QWidget(main_window)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
@@ -162,9 +164,11 @@ class ClientWindow(QtWidgets.QMainWindow):
         conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
         cursor = conn.cursor()
 
-        cursor.execute("""SELECT  c.`ID`, c.`Name and Surname`, c.`Phone`, c.`Date`, c.`Time`, c.`Doctor's name`, d.`room number`
-                       FROM clients c INNER JOIN doctors d
-                       ON c.`Doctor's name` = d.`Doctor's name`""")
+        cursor.execute("""SELECT c.ID, c.`Name and Surname`, c.`Phone`, c.`Date`, c.`Time`, c.`Doctor's name`, d.`room number`
+             FROM clients c INNER JOIN doctors d
+             ON c.`Doctor's name` = d.`Doctor's name`
+             WHERE ((Date > CURRENT_DATE()) or (Date = current_date()) and (Time > current_time()))
+             """)
         data = cursor.fetchall()
         cursor.close()
         return data

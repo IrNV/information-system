@@ -60,24 +60,42 @@ class ArchiveWindow(QtWidgets.QMainWindow):
                                                        "Date", "Time", "Doctor's name", "Room number"])
 
     def set_horizontal_signal(self, horizontal):
+        """
+        What to do when the horizontal header is clicked
+        """
         header = self.ui.tableWidget.horizontalHeader()
         header.sectionClicked.connect(horizontal)
 
     def set_row_count(self, count):
+        """
+        To set the count of rows
+        """
         self.ui.tableWidget.setRowCount(count)
 
     @staticmethod
     def get_item(data):
+        """
+        get data from table cell
+        """
         return QtWidgets.QTableWidgetItem(data)
 
     @staticmethod
     def set_enabled(item):
+        """
+        Deny the ability to modify data in cell
+        """
         item.setFlags(QtCore.Qt.ItemIsEnabled)
 
     def set_item(self, i, j, item):
+        """
+        set item into table cell
+        """
         self.ui.tableWidget.setItem(i, j, item)
 
     def get_current_column(self):
+        """
+        :return: a number of columns
+        """
         return self.ui.tableWidget.currentColumn()
 
 

@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import QSize, Qt
+from Data_Base import DataBaseMySQL
 
 
 class UiDoctor(object):
@@ -54,6 +55,7 @@ class UiDoctor(object):
         self.menubar.addAction("Save changes")
         self.menubar.setGeometry(QtCore.QRect(0, 0, 823, 21))
         self.menubar.setObjectName("menubar")
+        self.menubar.setNativeMenuBar(False)
 
     @staticmethod
     def re_translate_ui(main_window):
@@ -73,6 +75,7 @@ class DoctorWindow(QtWidgets.QMainWindow):
         self.ui.setup_ui(self)
         self.ui.tableWidget.setHorizontalHeaderLabels(["Id", "Name", "Room number", "Phone number", "Email"])
 
+        self.DataBase = DataBaseMySQL()
         self.set_table_with_doctors_data()
         self.set_signals_and_slots()
 
@@ -101,22 +104,8 @@ class DoctorWindow(QtWidgets.QMainWindow):
         """
         self.__selected_doctor = self.ui.tableWidget.currentRow()
 
-    @staticmethod
-    def reed_information_about_doctor():
-        """
-        Reed data from a database about doctors.
-        :return: cortege rows with data.
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT * FROM doctors""")
-        data = cursor.fetchall()
-        cursor.close()
-        return data
-
     def set_table_with_doctors_data(self):
-        row = DoctorWindow.reed_information_about_doctor()
+        row = self.DataBase.reed_information_about_doctor()
 
         self.ui.tableWidget.setRowCount(len(row))
 
@@ -172,70 +161,11 @@ class DoctorWindow(QtWidgets.QMainWindow):
 
         return data
 
-    @staticmethod
-    def select_id():
-        """
-        Select doctor's id from db
-        :return: cortege of ids
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT ID FROM doctors ORDER BY ID""")
-        data = cursor.fetchall()
-        cursor.close()
-
-        return data
-
-    @staticmethod
-    def update_data(row, data):
-        """
-        Update data in db b id
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""UPDATE doctors
-        SET `Doctor's name` = %s, `Room number` = %s, Phone = %s, Email = %s
-        WHERE id = %s """, (data[row][1], data[row][2], data[row][3], data[row][4], data[row][0]))
-
-        conn.commit()
-        cursor.close()
-
-    @staticmethod
-    def add_new_data(row, data):
-        """
-        Add new data to db from doctor's table widget
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""INSERT INTO doctors
-        (ID, `Doctor's name`, `Room number`, Phone, Email)
-        VALUES (%s, %s, %s, %s, %s)
-        """, (data[row][0], data[row][1], data[row][2], data[row][3], data[row][4]))
-
-        conn.commit()
-        cursor.close()
-
-    @staticmethod
-    def delete_data(id_row):
-        """
-        Delete row in db by id
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-        cursor.execute("""DELETE FROM doctors
-        WHERE ID = %s
-        """, (id_row,))
-        conn.commit()
-        cursor.close()
-
     def save_changes(self):
         """
         Save all changes was done
         """
-        selected_id = DoctorWindow.select_id()
+        selected_id = self.DataBase.select_doctors_id()
         list_of_id_from_db = []
         list_of_id_from_table = []
 
@@ -248,10 +178,10 @@ class DoctorWindow(QtWidgets.QMainWindow):
 
         for i in range(len(list_of_id_from_table)):
             if data_from_table[i][0] in list_of_id_from_db:
-                DoctorWindow.update_data(i, data_from_table)
+                self.DataBase.update_doctor_data(i, data_from_table)
             else:
-                DoctorWindow.add_new_data(i, data_from_table)
+                self.DataBase.add_new_doctor_data(i, data_from_table)
 
         for i in range(len(list_of_id_from_db)):
             if list_of_id_from_db[i] not in list_of_id_from_table:
-                DoctorWindow.delete_data(list_of_id_from_db[i])
+                self.DataBase.delete_doctor_data(list_of_id_from_db[i])

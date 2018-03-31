@@ -4,7 +4,7 @@ from main_window import *
 from client_window import *
 from doctor_window import *
 from archive_window import *
-from PyQt5 import QtWidgets
+from PyQt5.Qt import QtWidgets
 
 
 class MyWin(QtWidgets.QMainWindow):
@@ -31,7 +31,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.__doctors.show()
 
     def show_archive(self):
-        self.__archive = ArchiveWindow()
+        self.__archive = ArchiveLogic()
         self.__archive.show()
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-import MySQLdb
 from PyQt5 import QtCore, QtWidgets
+from Data_Base import DataBaseMySQL
 
 
 class UiArchive(object):
@@ -51,19 +51,75 @@ class UiArchive(object):
 
 
 class ArchiveWindow(QtWidgets.QMainWindow):
-    __list_of_column = [0, 0, 0, 0, 0, 0]
-
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = UiArchive()
         self.ui.setup_ui(self)
-        row = ArchiveWindow.select_data_about_client()
-        self.show_clients_data(row)
+
         self.ui.tableWidget.setHorizontalHeaderLabels(["Id", "Name and Surname", "Phone number",
                                                        "Date", "Time", "Doctor's name", "Room number"])
 
+    def set_horizontal_signal(self, horizontal):
         header = self.ui.tableWidget.horizontalHeader()
-        header.sectionClicked.connect(self.horizontal_header_clicked)
+        header.sectionClicked.connect(horizontal)
+
+    def set_row_count(self, count):
+        self.ui.tableWidget.setRowCount(count)
+
+    @staticmethod
+    def get_item(data):
+        return QtWidgets.QTableWidgetItem(data)
+
+    @staticmethod
+    def set_enabled(item):
+        item.setFlags(QtCore.Qt.ItemIsEnabled)
+
+    def set_item(self, i, j, item):
+        self.ui.tableWidget.setItem(i, j, item)
+
+    def get_current_column(self):
+        return self.ui.tableWidget.currentColumn()
+
+
+class ArchiveLogic:
+    __list_of_column = [0, 0, 0, 0, 0, 0, 0]
+
+    def __init__(self):
+        self.interface = ArchiveWindow()
+        self.interface.set_horizontal_signal(self.horizontal_header_clicked)
+        self.DataBase = DataBaseMySQL()
+        row = self.DataBase.select_archive_data()
+        self.show_clients_data(row)
+
+    def horizontal_header_clicked(self):
+        """
+        Sort data from table by column
+        """
+
+        current_column = self.interface.get_current_column()
+        if self.__list_of_column[current_column] == 0:
+            order_by = "ASC"
+            self.set_flags(self.__list_of_column)
+            self.__list_of_column[current_column] = 1
+        else:
+            order_by = "DESC"
+            self.set_flags(self.__list_of_column)
+
+        if current_column == 0:
+            data = self.DataBase.select_archive_data("ID " + order_by)
+        elif current_column == 1:
+            data = self.DataBase.select_archive_data("`Name and Surname` " + order_by)
+        elif current_column == 2:
+            data = self.DataBase.select_archive_data("Phone " + order_by)
+        elif current_column == 3:
+            data = self.DataBase.select_archive_data("Date " + order_by + ", Time")
+        elif current_column == 4:
+            data = self.DataBase.select_archive_data("`Time`" + order_by)
+        elif current_column == 5:
+            data = self.DataBase.select_archive_data("`Doctor's Name`" + order_by)
+        else:
+            data = self.DataBase.select_archive_data("`Room number`" + order_by)
+        self.show_clients_data(data)
 
     @staticmethod
     def set_flags(list_of_flags):
@@ -74,64 +130,17 @@ class ArchiveWindow(QtWidgets.QMainWindow):
         for i in range(len(list_of_flags)):
             list_of_flags[i] = 0
 
-    def horizontal_header_clicked(self):
-        """
-        Sort data from table by column
-        """
-        current_column = self.ui.tableWidget.currentColumn()
-
-        if self.__list_of_column[current_column] == 0:
-            order_by = "ASC"
-            ArchiveWindow.set_flags(self.__list_of_column)
-            self.__list_of_column[current_column] = 1
-        else:
-            order_by = "DESC"
-            ArchiveWindow.set_flags(self.__list_of_column)
-
-        if current_column == 0:
-            data = ArchiveWindow.select_data_about_client("ID " + order_by)
-        elif current_column == 1:
-            data = ArchiveWindow.select_data_about_client("`Name and Surname` " + order_by)
-        elif current_column == 2:
-            data = ArchiveWindow.select_data_about_client("Phone " + order_by)
-        elif current_column == 3:
-            data = ArchiveWindow.select_data_about_client("Date " + order_by + ", Time")
-        elif current_column == 4:
-            data = ArchiveWindow.select_data_about_client("`Time`" + order_by)
-        elif current_column == 5:
-            data = ArchiveWindow.select_data_about_client("`Doctor's Name`" + order_by)
-        else:
-            data = ArchiveWindow.select_data_about_client("`Room number`" + order_by)
-
-        self.show_clients_data(data)
-
-    @staticmethod
-    def select_data_about_client(parameter_order="ID"):
-        """
-        Select data about client from db
-        :param parameter_order:  data will be sorted by this parameter
-        :return:
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT c.ID, c.`Name and Surname`, c.`Phone`, c.`Date`, c.`Time`, c.`Doctor's name`, d.`room number`
-        FROM clients c INNER JOIN doctors d
-        ON c.`Doctor's name` = d.`Doctor's name`
-        WHERE ((Date < CURRENT_DATE()) or (Date = current_date()) and (Time < current_time()))
-        ORDER BY %s""" % parameter_order)
-        data = cursor.fetchall()
-        cursor.close()
-        return data
+    def show(self):
+        self.interface.show()
 
     def show_clients_data(self, data):
         """
         Set data into table widget
         :param data: cortege rows with data.
         """
-        self.ui.tableWidget.setRowCount(len(data))
+        self.interface.set_row_count(len(data))
         for i in range(len(data)):
             for j in range(len(data[i])):
-                item = QtWidgets.QTableWidgetItem(str(data[i][j]))
-                item.setFlags(QtCore.Qt.ItemIsEnabled)
-                self.ui.tableWidget.setItem(i, j, item)
+                item = self.interface.get_item(str(data[i][j]))
+                self.interface.set_enabled(item)
+                self.interface.set_item(i, j, item)

@@ -1,6 +1,6 @@
-import MySQLdb
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QTableWidget, QTableWidgetItem
+from Data_Base import DataBaseMySQL
 
 
 class UiClient(object):
@@ -49,12 +49,13 @@ class UiClient(object):
         This method creates menu bar, adds buttons and sets options
         """
         self.menubar = QtWidgets.QMenuBar(main_window)
-        self.menubar.addAction("Add new doctor")
-        self.menubar.addAction("Delete doctor")
+        self.menubar.addAction("Add new client")
+        self.menubar.addAction("Delete client")
         self.menubar.addAction("Revert")
         self.menubar.addAction("Save changes")
         self.menubar.setGeometry(QtCore.QRect(0, 0, 823, 21))
         self.menubar.setObjectName("menubar")
+        self.menubar.setNativeMenuBar(False)
 
     @staticmethod
     def retranslateUi(main_window):
@@ -70,12 +71,14 @@ class ClientWindow(QtWidgets.QMainWindow):
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
+
         self.ui = UiClient()
         self.ui.setupUi(self)
         self.ui.tableWidget.setHorizontalHeaderLabels(["Id", "Name and Surname", "Phone", "Date",
                                                        "Time", "Doctor's name", "Room number"])
 
-        self.show_clients_data(ClientWindow.reed_information_about_client())
+        self.DataBase = DataBaseMySQL()
+        self.show_clients_data(self.DataBase.reed_information_about_client())
         self.set_signals_and_slots()
 
     def set_signals_and_slots(self):
@@ -146,7 +149,7 @@ class ClientWindow(QtWidgets.QMainWindow):
         self.__selected_client = None
 
     def combobox_changed(self):
-        doctors_data = self.select_doctors()
+        doctors_data = self.DataBase.select_doctors()
 
         for j in range(len(self.__array_of_combo_boxes)):
             for i in range(len(doctors_data)):
@@ -155,31 +158,13 @@ class ClientWindow(QtWidgets.QMainWindow):
                     item.setFlags(QtCore.Qt.ItemIsEnabled)
                     self.ui.tableWidget.setItem(j, 6, item)
 
-    @staticmethod
-    def reed_information_about_client():
-        """
-        Reed data from a database about clients.
-        :return: cortege rows with data.
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT c.ID, c.`Name and Surname`, c.`Phone`, c.`Date`, c.`Time`, c.`Doctor's name`, d.`room number`
-             FROM clients c INNER JOIN doctors d
-             ON c.`Doctor's name` = d.`Doctor's name`
-             WHERE ((Date > CURRENT_DATE()) or (Date = current_date()) and (Time > current_time()))
-             """)
-        data = cursor.fetchall()
-        cursor.close()
-        return data
-
     def show_clients_data(self, row):
         """
         Set data into table widget
         :param row: cortege rows with data.
         """
         self.ui.tableWidget.setRowCount(len(row))
-        data = ClientWindow.select_doctors()
+        data = self.DataBase.select_doctors()
         self.__array_of_combo_boxes = []
         for i in range(len(row)):
             for j in range(self.NUMBER_OF_COLUMN):
@@ -190,36 +175,27 @@ class ClientWindow(QtWidgets.QMainWindow):
                     self.create_combo_box(data, i + 1, row[i][j])
                 self.ui.tableWidget.setItem(i, j, item)
 
-    @staticmethod
-    def select_doctors():
-        """
-        Reed data from a database about doctors.
-        :return: cortege rows with data.
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT  * FROM doctors """)
-        data = cursor.fetchall()
-        cursor.close()
-        return data
-
     def get_max_id(self):
         """
         Find max id in table.
-        :return: max id in current table.
+        :return: max id in table.
         """
         list_of_id = []
-        for i in range(self.ui.tableWidget.rowCount()):
-            list_of_id.append(int(self.ui.tableWidget.item(i, 0).text()))
+        for i in self.DataBase.select_id():
+            list_of_id.append(i[0])
+
         return max(list_of_id)
 
     def add_new_client(self):
         """
         Add new client.
         """
+
         max_id = self.get_max_id()
-        data = ClientWindow.select_doctors()
+        if max_id is None:
+            max_id = 0
+
+        data = self.DataBase.select_doctors()
 
         new_row = self.ui.tableWidget.rowCount() + 1
         self.ui.tableWidget.setRowCount(new_row)
@@ -277,7 +253,7 @@ class ClientWindow(QtWidgets.QMainWindow):
         """
         Cancel changes and revert previous data
         """
-        self.show_clients_data(ClientWindow.reed_information_about_client())
+        self.show_clients_data(self.DataBase.reed_information_about_client())
 
     def select_data_from_table(self):
         """
@@ -300,70 +276,11 @@ class ClientWindow(QtWidgets.QMainWindow):
 
         return data
 
-    @staticmethod
-    def select_id():
-        """
-        Select client's id from db
-        :return: cortege of ids
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""SELECT ID FROM clients ORDER BY ID""")
-        data = cursor.fetchall()
-        cursor.close()
-
-        return data
-
-    @staticmethod
-    def update_data(row, data):
-        """
-        Update data in db by id
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""UPDATE clients
-            SET `Name and Surname` = %s, `Phone` = %s, `Date` = %s, `Time` = %s, `Doctor's name` = %s
-            WHERE ID = %s """, (data[row][1], data[row][2], data[row][3], data[row][4], data[row][5], data[row][0]))
-
-        conn.commit()
-        cursor.close()
-
-    @staticmethod
-    def add_new_data(row, data):
-        """
-        Add new data to db from client's table widget
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-
-        cursor.execute("""INSERT INTO clients
-            (ID, `Name and Surname`, `Phone`, `Date`, `Time`, `Doctor's name`)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """, (data[row][0], data[row][1], data[row][2], data[row][3], data[row][4], data[row][5]))
-
-        conn.commit()
-        cursor.close()
-
-    @staticmethod
-    def delete_data(id_row):
-        """
-        Delete row in db by id
-        """
-        conn = MySQLdb.connect('localhost', 'Valera', '5342395', 'sys')
-        cursor = conn.cursor()
-        cursor.execute("""DELETE FROM clients
-            WHERE ID = %s
-            """, (id_row,))
-        conn.commit()
-        cursor.close()
-
     def save_changes(self):
         """
         Save all changes was done
         """
-        selected_id = ClientWindow.select_id()
+        selected_id = self.DataBase.select_id()
         list_of_id_from_db = []
         list_of_id_from_table = []
 
@@ -377,10 +294,10 @@ class ClientWindow(QtWidgets.QMainWindow):
 
         for i in range(len(list_of_id_from_table)):
             if data_from_table[i][0] in list_of_id_from_db:
-                ClientWindow.update_data(i, data_from_table)
+                self.DataBase.update_data(i, data_from_table)
             else:
-                ClientWindow.add_new_data(i, data_from_table)
+                self.DataBase.add_new_data(i, data_from_table)
 
         for i in range(len(list_of_id_from_db)):
             if list_of_id_from_db[i] not in list_of_id_from_table:
-                ClientWindow.delete_data(list_of_id_from_db[i])
+                self.DataBase.delete_data(list_of_id_from_db[i])

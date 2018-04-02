@@ -1,5 +1,6 @@
 import MySQLdb
 
+
 class DataBaseMySQL:
 
     def __init__(self):

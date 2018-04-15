@@ -4,7 +4,7 @@ import MySQLdb
 class DataBaseMySQL:
 
     def __init__(self):
-        self.connect = MySQLdb.connect('localhost', 'root', '5342395', 'sys')
+        self.connect = MySQLdb.connect('localhost', 'user', 'password', 'db')
 
     def reed_information_about_client(self):
         """
